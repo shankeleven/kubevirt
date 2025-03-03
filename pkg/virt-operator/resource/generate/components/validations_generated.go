@@ -883,6 +883,10 @@ var CRDsValidation map[string]string = map[string]string{
             developerConfiguration:
               description: DeveloperConfiguration holds developer options
               properties:
+                clusterProfiler:
+                  description: Enable the ability to pprof profile KubeVirt control
+                    plane
+                  type: boolean
                 cpuAllocationRatio:
                   description: |-
                     For each requested virtual CPU, CPUAllocationRatio defines how much physical CPU to request per VMI
@@ -1574,9 +1578,8 @@ var CRDsValidation map[string]string = map[string]string{
               nullable: true
               type: string
             vmStateStorageClass:
-              description: |-
-                VMStateStorageClass is the name of the storage class to use for the PVCs created to preserve VM state, like TPM.
-                The storage class must support RWX in filesystem mode.
+              description: VMStateStorageClass is the name of the storage class to
+                use for the PVCs created to preserve VM state, like TPM.
               type: string
             webhookConfiguration:
               description: |-
@@ -6400,7 +6403,11 @@ var CRDsValidation map[string]string = map[string]string{
                               state:
                                 description: |-
                                   State represents the requested operational state of the interface.
-                                  The (only) value supported is 'absent', expressing a request to remove the interface.
+                                  The supported values are:
+                                  'absent', expressing a request to remove the interface.
+                                  'down', expressing a request to set the link down.
+                                  'up', expressing a request to set the link up.
+                                  Empty value functions as 'up'.
                                 type: string
                               tag:
                                 description: If specified, the virtual network interface
@@ -8179,6 +8186,35 @@ var CRDsValidation map[string]string = map[string]string{
             updated through an Update() before ObservedGeneration in Status.
           format: int64
           type: integer
+        instancetypeRef:
+          description: InstancetypeRef captures the state of any referenced instance
+            type from the VirtualMachine
+          nullable: true
+          properties:
+            controllerRevisionRef:
+              description: |-
+                ControllerRef specifies the ControllerRevision storing a copy of the object captured
+                when it is first seen by the VirtualMachine controller
+              properties:
+                name:
+                  description: Name of the ControllerRevision
+                  type: string
+              type: object
+            inferFromVolume:
+              description: InferFromVolume lists the name of a volume that should
+                be used to infer or discover the resource
+              type: string
+            inferFromVolumeFailurePolicy:
+              description: InferFromVolumeFailurePolicy controls what should happen
+                on failure when inferring the resource
+              type: string
+            kind:
+              description: Kind specifies the kind of resource
+              type: string
+            name:
+              description: Name is the name of resource
+              type: string
+          type: object
         memoryDumpRequest:
           description: |-
             MemoryDumpRequest tracks memory dump request phase and info of getting a memory
@@ -8220,6 +8256,35 @@ var CRDsValidation map[string]string = map[string]string{
             started.
           format: int64
           type: integer
+        preferenceRef:
+          description: PreferenceRef captures the state of any referenced preference
+            from the VirtualMachine
+          nullable: true
+          properties:
+            controllerRevisionRef:
+              description: |-
+                ControllerRef specifies the ControllerRevision storing a copy of the object captured
+                when it is first seen by the VirtualMachine controller
+              properties:
+                name:
+                  description: Name of the ControllerRevision
+                  type: string
+              type: object
+            inferFromVolume:
+              description: InferFromVolume lists the name of a volume that should
+                be used to infer or discover the resource
+              type: string
+            inferFromVolumeFailurePolicy:
+              description: InferFromVolumeFailurePolicy controls what should happen
+                on failure when inferring the resource
+              type: string
+            kind:
+              description: Kind specifies the kind of resource
+              type: string
+            name:
+              description: Name is the name of resource
+              type: string
+          type: object
         printableStatus:
           default: Stopped
           description: PrintableStatus is a human readable, high-level representation
@@ -11758,7 +11823,11 @@ var CRDsValidation map[string]string = map[string]string{
                       state:
                         description: |-
                           State represents the requested operational state of the interface.
-                          The (only) value supported is 'absent', expressing a request to remove the interface.
+                          The supported values are:
+                          'absent', expressing a request to remove the interface.
+                          'down', expressing a request to set the link down.
+                          'up', expressing a request to set the link up.
+                          Empty value functions as 'up'.
                         type: string
                       tag:
                         description: If specified, the virtual network interface address
@@ -14188,6 +14257,17 @@ var CRDsValidation map[string]string = map[string]string{
       type: object
     spec:
       properties:
+        addedNodeSelector:
+          additionalProperties:
+            type: string
+          description: |-
+            AddedNodeSelector is an additional selector that can be used to
+            complement a NodeSelector or NodeAffinity as set on the VM
+            to restrict the set of allowed target nodes for a migration.
+            In case of key collisions, values set on the VM objects
+            are going to be preserved to ensure that addedNodeSelector
+            can only restrict but not bypass constraints already set on the VM object.
+          type: object
         vmiName:
           description: The name of the VMI to perform the migration on. VMI must exist
             in the migration objects namespace
@@ -15096,7 +15176,11 @@ var CRDsValidation map[string]string = map[string]string{
                       state:
                         description: |-
                           State represents the requested operational state of the interface.
-                          The (only) value supported is 'absent', expressing a request to remove the interface.
+                          The supported values are:
+                          'absent', expressing a request to remove the interface.
+                          'down', expressing a request to set the link down.
+                          'up', expressing a request to set the link up.
+                          Empty value functions as 'up'.
                         type: string
                       tag:
                         description: If specified, the virtual network interface address
@@ -17510,7 +17594,11 @@ var CRDsValidation map[string]string = map[string]string{
                               state:
                                 description: |-
                                   State represents the requested operational state of the interface.
-                                  The (only) value supported is 'absent', expressing a request to remove the interface.
+                                  The supported values are:
+                                  'absent', expressing a request to remove the interface.
+                                  'down', expressing a request to set the link down.
+                                  'up', expressing a request to set the link up.
+                                  Empty value functions as 'up'.
                                 type: string
                               tag:
                                 description: If specified, the virtual network interface
@@ -19559,6 +19647,14 @@ var CRDsValidation map[string]string = map[string]string{
       type: object
     spec:
       properties:
+        nameGeneration:
+          description: Options for the name generation in a pool.
+          properties:
+            appendIndexToConfigMapRefs:
+              type: boolean
+            appendIndexToSecretRefs:
+              type: boolean
+          type: object
         paused:
           description: Indicates that the pool is paused.
           type: boolean
@@ -22134,7 +22230,11 @@ var CRDsValidation map[string]string = map[string]string{
                                       state:
                                         description: |-
                                           State represents the requested operational state of the interface.
-                                          The (only) value supported is 'absent', expressing a request to remove the interface.
+                                          The supported values are:
+                                          'absent', expressing a request to remove the interface.
+                                          'down', expressing a request to set the link down.
+                                          'up', expressing a request to set the link up.
+                                          Empty value functions as 'up'.
                                         type: string
                                       tag:
                                         description: If specified, the virtual network
@@ -27458,7 +27558,11 @@ var CRDsValidation map[string]string = map[string]string{
                                           state:
                                             description: |-
                                               State represents the requested operational state of the interface.
-                                              The (only) value supported is 'absent', expressing a request to remove the interface.
+                                              The supported values are:
+                                              'absent', expressing a request to remove the interface.
+                                              'down', expressing a request to set the link down.
+                                              'up', expressing a request to set the link up.
+                                              Empty value functions as 'up'.
                                             type: string
                                           tag:
                                             description: If specified, the virtual
@@ -29276,6 +29380,35 @@ var CRDsValidation map[string]string = map[string]string{
                         updated through an Update() before ObservedGeneration in Status.
                       format: int64
                       type: integer
+                    instancetypeRef:
+                      description: InstancetypeRef captures the state of any referenced
+                        instance type from the VirtualMachine
+                      nullable: true
+                      properties:
+                        controllerRevisionRef:
+                          description: |-
+                            ControllerRef specifies the ControllerRevision storing a copy of the object captured
+                            when it is first seen by the VirtualMachine controller
+                          properties:
+                            name:
+                              description: Name of the ControllerRevision
+                              type: string
+                          type: object
+                        inferFromVolume:
+                          description: InferFromVolume lists the name of a volume
+                            that should be used to infer or discover the resource
+                          type: string
+                        inferFromVolumeFailurePolicy:
+                          description: InferFromVolumeFailurePolicy controls what
+                            should happen on failure when inferring the resource
+                          type: string
+                        kind:
+                          description: Kind specifies the kind of resource
+                          type: string
+                        name:
+                          description: Name is the name of resource
+                          type: string
+                      type: object
                     memoryDumpRequest:
                       description: |-
                         MemoryDumpRequest tracks memory dump request phase and info of getting a memory
@@ -29320,6 +29453,35 @@ var CRDsValidation map[string]string = map[string]string{
                         the vmi when started.
                       format: int64
                       type: integer
+                    preferenceRef:
+                      description: PreferenceRef captures the state of any referenced
+                        preference from the VirtualMachine
+                      nullable: true
+                      properties:
+                        controllerRevisionRef:
+                          description: |-
+                            ControllerRef specifies the ControllerRevision storing a copy of the object captured
+                            when it is first seen by the VirtualMachine controller
+                          properties:
+                            name:
+                              description: Name of the ControllerRevision
+                              type: string
+                          type: object
+                        inferFromVolume:
+                          description: InferFromVolume lists the name of a volume
+                            that should be used to infer or discover the resource
+                          type: string
+                        inferFromVolumeFailurePolicy:
+                          description: InferFromVolumeFailurePolicy controls what
+                            should happen on failure when inferring the resource
+                          type: string
+                        kind:
+                          description: Kind specifies the kind of resource
+                          type: string
+                        name:
+                          description: Name is the name of resource
+                          type: string
+                      type: object
                     printableStatus:
                       default: Stopped
                       description: PrintableStatus is a human readable, high-level

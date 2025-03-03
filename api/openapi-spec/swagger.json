@@ -17343,7 +17343,7 @@
       "type": "string"
      },
      "hostname": {
-      "description": "More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes Specifies the hostname of the vmi If not specified, the hostname will be set to the name of the vmi, if dhcp or cloud-init is configured properly.",
+      "description": "Specifies the hostname of the vmi If not specified, the hostname will be set to the name of the vmi, if dhcp or cloud-init is configured properly.",
       "type": "string"
      },
      "livenessProbe": {

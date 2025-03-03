@@ -26456,9 +26456,15 @@ func schema_kubevirtio_api_core_v1_VirtualMachineInstanceSpec(ref common.Referen
 							Ref:         ref("kubevirt.io/api/core/v1.Probe"),
 						},
 					},
+					"startupProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "StartupProbe indicates that the Pod has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a Pod's lifecycle, when it might take a long time to lad data or warm a cache, than during steady-state operation. This cannot be updated.",
+							Ref:         ref("kubevirt.io/api/core/v1.Probe"),
+						},
+					},
 					"hostname": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specifies the hostname of the vmi If not specified, the hostname will be set to the name of the vmi, if dhcp or cloud-init is configured properly.",
+							Description: "More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes Specifies the hostname of the vmi If not specified, the hostname will be set to the name of the vmi, if dhcp or cloud-init is configured properly.",
 							Type:        []string{"string"},
 							Format:      "",
 						},

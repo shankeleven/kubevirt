@@ -252,19 +252,28 @@ var _ = Describe("Validating VMICreate Admitter", func() {
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				withReadinessProbe(&v1.Probe{InitialDelaySeconds: 2}),
 				withLivenessProbe(&v1.Probe{InitialDelaySeconds: 2}),
-			)
+                withStartupProbe(&v1.Probe{InitialDelaySeconds: 2}),
+                )
 
 			ar, err := newAdmissionReviewForVMICreation(vmi)
 			Expect(err).ToNot(HaveOccurred())
 
 			resp := vmiCreateAdmitter.Admit(context.Background(), ar)
 			Expect(resp.Allowed).To(BeFalse())
-			Expect(resp.Result.Message).To(Equal(`either spec.readinessProbe.tcpSocket, spec.readinessProbe.exec or spec.readinessProbe.httpGet must be set if a spec.readinessProbe is specified, either spec.livenessProbe.tcpSocket, spec.livenessProbe.exec or spec.livenessProbe.httpGet must be set if a spec.livenessProbe is specified`))
+			Expect(resp.Result.Message).To(Equal(`either spec.readinessProbe.tcpSocket, spec.readinessProbe.exec or spec.readinessProbe.httpGet must be set if a spec.readinessProbe is specified, either spec.livenessProbe.tcpSocket, spec.livenessProbe.exec or spec.livenessProbe.httpGet must be set if a spec.livenessProbe is specified ,  either spec.startupProbe.tcpSocket, spec.startupProbe.exec or spec.startupProbe.httpGet must be set if a spec.startupProbe is specified,` ))
 		})
 		It("should reject probes with more than one action per probe configured", func() {
 			vmi := newBaseVmi(
 				libvmi.WithInterface(*v1.DefaultBridgeNetworkInterface()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
+                withStartupProbe(&v1.Probe{
+                    InitialDelaySeconds: 2,
+                    Handler: v1.Handler{
+                    HTTPGet:        &k8sv1.HTTPGetAction{Host: "test", Port: intstr.Parse("80")},
+                    TCPSocket:      &k8sv1.TCPSocketAction{Host: "lal", Port: intstr.Parse("80")},
+                    GuestAgentPing: &v1.GuestAgentPing{},
+                },
+            }),
 				withReadinessProbe(&v1.Probe{
 					InitialDelaySeconds: 2,
 					Handler: v1.Handler{
@@ -318,6 +327,12 @@ var _ = Describe("Validating VMICreate Admitter", func() {
 		It("should reject properly configured network-based readiness and liveness probes if no Pod Network is present", func() {
 			vmi := newBaseVmi(
 				libvmi.WithAutoAttachPodInterface(false),
+                withStartupProbe(&v1.Probe{
+                    InitialDelaySeconds: 2,
+                    Handler: v1.Handler{
+                    TCPSocket:      &k8sv1.TCPSocketAction{Host: "lal", Port: intstr.Parse("80")},
+                },
+            }),
 				withReadinessProbe(&v1.Probe{
 					InitialDelaySeconds: 2,
 					Handler: v1.Handler{
@@ -4116,6 +4131,7 @@ var _ = Describe("additional tests", func() {
 			},
 		}
 
+
 		path := k8sfield.NewPath("spec")
 		causes := webhooks.ValidateVirtualMachineInstanceHypervFeatureDependencies(path, &vmi.Spec)
 		Expect(causes).To(BeEmpty())
@@ -4161,6 +4177,13 @@ func withLivenessProbe(probe *v1.Probe) libvmi.Option {
 		vmi.Spec.LivenessProbe = probe
 	}
 }
+
+func withStartupProbe(probe *v1.Probe) libvmi.Option {
+    return func(vmi *v1.VirtualMachineInstance) {
+        vmi.Spec.StartupProbe = probe
+    }
+}
+
 
 func newValidateStub(statusCauses ...metav1.StatusCause) SpecValidator {
 	return func(_ *k8sfield.Path, _ *v1.VirtualMachineInstanceSpec, _ *virtconfig.ClusterConfig) []metav1.StatusCause {

@@ -131,13 +131,21 @@ type VirtualMachineInstanceSpec struct {
 	// Cannot be updated.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
 	// +optional
-	LivenessProbe *Probe `json:"livenessProbe,omitempty"`
+	LivenessProbe *Probe `json:"livenessProbe,omitempty"`	
 	// Periodic probe of VirtualMachineInstance service readiness.
 	// VirtualmachineInstances will be removed from service endpoints if the probe fails.
 	// Cannot be updated.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
 	// +optional
 	ReadinessProbe *Probe `json:"readinessProbe,omitempty"`
+	//StartupProbe indicates that the Pod has successfully initialized.
+	//If specified, no other probes are executed until this completes successfully.
+	//If this probe fails, the Pod will be restarted, just as if the livenessProbe failed.
+	//This can be used to provide different probe parameters at the beginning of a Pod's lifecycle,
+	//when it might take a long time to lad data or warm a cache, than during steady-state operation.
+	//This cannot be updated.
+	StartupProbe *Probe `json:"startupProbe,omitempty"`
+	//More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
 	// Specifies the hostname of the vmi
 	// If not specified, the hostname will be set to the name of the vmi, if dhcp or cloud-init is configured properly.
 	// +optional

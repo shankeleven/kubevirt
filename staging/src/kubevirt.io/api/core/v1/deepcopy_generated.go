@@ -5592,6 +5592,11 @@ func (in *VirtualMachineInstanceSpec) DeepCopyInto(out *VirtualMachineInstanceSp
 		*out = new(Probe)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.StartupProbe != nil {
+		in, out := &in.StartupProbe, &out.StartupProbe
+		*out = new(Probe)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Networks != nil {
 		in, out := &in.Networks, &out.Networks
 		*out = make([]Network, len(*in))
